@@ -1,0 +1,16 @@
+name: summary
+on: 
+  release:
+    types: [created, edited]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: osmtw/gpsbabel:0.2
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./rescue/script/process-gpx.sh
+    - run: ./rescue/script/upload-github-release-asset.sh ./summary.gpx
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
