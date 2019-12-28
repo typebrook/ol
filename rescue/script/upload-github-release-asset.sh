@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#
+# Author: Stefan Buck
+# License: MIT
+# https://gist.github.com/stefanbuck/ce788fee19ab6eb0b4447a85fc99f447
+#
+#
+# This script accepts the following parameters:
+#
+# * owner
+# * repo
+# * tag
+# * filename
+# * github_api_token
+# * overwrite (optional, could be ture, false, delete, default to be false)
+#
+# Script to upload a release asset using the GitHub API v3.
+#
+# Example:
+#
+# upload-github-release-asset.sh github_api_token=TOKEN owner=stefanbuck repo=playground tag=v0.1.0 filename=./build.zip overwrite=true
+#
+
+# Check dependencies.
+set -e
+xargs=$(which gxargs || which xargs)
+
+# Validate settings.
+[ "$TRACE" ] && set -x
+
+github_api_token=$GITHUB_TOKEN
+owner=$(echo $GITHUB_REPOSITORY | sed 's#/.*##')
+repo=$(echo $GITHUB_REPOSITORY | sed 's#.*/##')
+tag=$(echo $GITHUB_REF | sed 's#.*/##')
+filename=$1
+overwrite=true
+
+# Define variables.
+GH_API="https://api.github.com"
+GH_REPO="$GH_API/repos/$owner/$repo"
+GH_TAGS="$GH_REPO/releases/tags/$tag"
+AUTH="Authorization: token $github_api_token"
+WGET_ARGS="--content-disposition --auth-no-challenge --no-cookie"
+CURL_ARGS="-LJO#"
+
+if [[ "$tag" == 'LATEST' ]]; then
+  GH_TAGS="$GH_REPO/releases/latest"
+fi
+
+# Validate token.
+curl -k -o /dev/null -sH "$AUTH" $GH_REPO || { echo "Error: Invalid repo, token or network issue!";  exit 1; }
+
+# Read asset tags.
+response=$(curl -k -sH "$AUTH" $GH_TAGS)
+
+# Get ID of the release.
+eval $(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=' | sed 's/id/release_id/')
+[ "$release_id"  ] || { echo "Error: Failed to get release id for tag: $tag"; echo "$response" | awk 'length($0)<100' >&2; exit 1; }
+
+# Get ID of the asset based on given filename.
+# If exists, delete it.
+eval $(echo "$response" | grep -C2 "\"name\":.\+$(basename $filename)" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=' | sed 's/id/asset_id/')
+if [ "$asset_id" = ""  ]; then
+    echo "No need to overwrite asset"
+else
+    if [ "$overwrite" ]; then
+        echo "Deleting asset($asset_id)... "
+        curl -k -X "DELETE" -H "Authorization: token $github_api_token" "https://api.github.com/repos/$owner/$repo/releases/assets/$asset_id"
+    else
+        echo "File already exists on tag $tag"
+        echo "If you want to overwrite it, set overwrite=true"
+        exit 1
+    fi
+    if [ "$overwrite" == "delete" ]; then
+        exit 0
+    fi
+fi
+
+# Upload asset
+echo "Uploading asset... "
+
+# Construct url
+GH_ASSET="https://uploads.github.com/repos/$owner/$repo/releases/$release_id/assets?name=$(basename $filename)"
+
+curl -k --data-binary @"$filename" -H "Authorization: token $github_api_token" -H "Content-Type: application/octet-stream" $GH_ASSET

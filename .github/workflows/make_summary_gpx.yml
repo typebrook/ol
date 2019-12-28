@@ -1,20 +1,16 @@
 name: summary
-on:
+on: 
   release:
-    types: [edited]
+    types: [created, edited]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     container:
-        image: osmtw/gpsbabel:0.1
+      image: osmtw/gpsbabel:0.2
     steps:
     - uses: actions/checkout@v2
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-    - uses: wyozi/download-gh-release-asset@master
-      with:
-        args: run.gpx
+    - run: ./rescue/script/process-gpx.sh
+    - run: ./rescue/script/upload-github-release-asset.sh ./summary.gpx
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-    - run: ls
