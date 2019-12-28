@@ -1,0 +1,13 @@
+name: summary
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+        image: osmtw/gpsbabel:0.1
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+    - run: gpsbabel -h
