@@ -66,46 +66,65 @@ window.addEventListener('popstate', function(event) {
   map.getView().setZoom(event.state.zoom);
   shouldUpdate = false;
 });
+var layer1;
+var layer2;
 
-var center1 = ol.proj.fromLonLat([121.0697, 24.49671]);
-var center2 = ol.proj.fromLonLat([121.0879, 24.4995]);
-var layer1 = new ol.layer.Vector({
-    source: new ol.source.Vector({
-      projection: 'EPSG:4326',
-      features: [
-        new ol.Feature(new ol.geom.Circle(center1, 19000))
-      ]
-    }),
-    style: [
-      new ol.style.Style({
-        stroke: new ol.style.Stroke({
-          color: 'blue',
-          width: 2
+setCell1(19000);
+setCell2(19000);
+
+function setCell1(radius) {
+    map.removeLayer(layer1);
+    var center1 = ol.proj.fromLonLat([121.0697, 24.49671]);
+    layer1 = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          projection: 'EPSG:4326',
+          features: [
+            new ol.Feature(new ol.geom.Circle(center1, radius))
+          ]
         }),
-        fill: new ol.style.Fill({
-          color: 'rgba(0, 0, 255, 0.1)'
-        })
-      })
-    ]
-});
-var layer2 = new ol.layer.Vector({
-    source: new ol.source.Vector({
-      projection: 'EPSG:4326',
-      features: [
-        new ol.Feature(new ol.geom.Circle(center2, 19000))
-      ]
-    }),
-    style: [
-      new ol.style.Style({
-        stroke: new ol.style.Stroke({
-          color: 'yellow',
-          width: 2
+        style: [
+          new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: 'blue',
+              width: 2
+            }),
+            fill: new ol.style.Fill({
+              color: 'rgba(0, 0, 255, 0.1)'
+            })
+          })
+        ]
+    });
+    map.addLayer(layer1);
+};
+
+function setCell2(radius) {
+    map.removeLayer(layer2);
+    var center2 = ol.proj.fromLonLat([121.0879, 24.4995]);
+    layer2 = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          projection: 'EPSG:4326',
+          features: [
+            new ol.Feature(new ol.geom.Circle(center2, radius))
+          ]
         }),
-        fill: new ol.style.Fill({
-          color: 'rgba(0, 255, 0, 0.1)'
-        })
-      })
-    ]
-});
-map.addLayer(layer1);
-map.addLayer(layer2);
+        style: [
+          new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: 'yellow',
+              width: 2
+            }),
+            fill: new ol.style.Fill({
+              color: 'rgba(0, 255, 0, 0.1)'
+            })
+          })
+        ]
+    });
+    map.addLayer(layer2);
+};
+
+function handle1(event) {
+    setCell1(parseInt(event.target.value));
+};
+function handle2(event) {
+    setCell2(parseInt(event.target.value));
+};
