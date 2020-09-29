@@ -1,6 +1,6 @@
 // default zoom, center and rotation
-var zoom = 16;
-var center = [121.30171,24.53225];
+var zoom = 11.5;
+var center = [121.0879, 24.4995];
 
 if (window.location.hash !== '') {
   // try to restore center, zoom-level and rotation from the URL
@@ -66,3 +66,46 @@ window.addEventListener('popstate', function(event) {
   map.getView().setZoom(event.state.zoom);
   shouldUpdate = false;
 });
+
+var center1 = ol.proj.fromLonLat([121.0697, 24.49671]);
+var center2 = ol.proj.fromLonLat([121.0879, 24.4995]);
+var layer1 = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      projection: 'EPSG:4326',
+      features: [
+        new ol.Feature(new ol.geom.Circle(center1, 19000))
+      ]
+    }),
+    style: [
+      new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          color: 'blue',
+          width: 2
+        }),
+        fill: new ol.style.Fill({
+          color: 'rgba(0, 0, 255, 0.1)'
+        })
+      })
+    ]
+});
+var layer2 = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      projection: 'EPSG:4326',
+      features: [
+        new ol.Feature(new ol.geom.Circle(center2, 19000))
+      ]
+    }),
+    style: [
+      new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          color: 'yellow',
+          width: 2
+        }),
+        fill: new ol.style.Fill({
+          color: 'rgba(0, 255, 0, 0.1)'
+        })
+      })
+    ]
+});
+map.addLayer(layer1);
+map.addLayer(layer2);

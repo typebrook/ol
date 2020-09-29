@@ -20,7 +20,7 @@ var style_setter = function(feature,LineColor){
           }),
           radius: 2,
           stroke: new ol.style.Stroke({
-            color: '#ff0',
+            color: '#f00',
             width: 1
           })
         }),
